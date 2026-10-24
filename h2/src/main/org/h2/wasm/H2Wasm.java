@@ -64,7 +64,8 @@ public final class H2Wasm {
     @JSExport
     public static String tables() {
         return query("SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES "
-                + "WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_SCHEMA, TABLE_NAME");
+                + "WHERE TABLE_SCHEMA <> 'INFORMATION_SCHEMA' "
+                + "ORDER BY TABLE_SCHEMA, TABLE_NAME");
     }
 
     /**
