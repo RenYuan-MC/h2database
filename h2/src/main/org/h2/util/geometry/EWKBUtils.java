@@ -5,10 +5,12 @@
  */
 package org.h2.util.geometry;
 
-import static org.h2.util.Bits.DOUBLE_VH_BE;
-import static org.h2.util.Bits.DOUBLE_VH_LE;
-import static org.h2.util.Bits.INT_VH_BE;
-import static org.h2.util.Bits.INT_VH_LE;
+import static org.h2.util.Bits.getDouble;
+import static org.h2.util.Bits.getDoubleLE;
+import static org.h2.util.Bits.getInt;
+import static org.h2.util.Bits.getIntLE;
+import static org.h2.util.Bits.putDouble;
+import static org.h2.util.Bits.putInt;
 import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XYM;
 import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XYZ;
 import static org.h2.util.geometry.GeometryUtils.DIMENSION_SYSTEM_XYZM;
@@ -168,13 +170,13 @@ public final class EWKBUtils {
         }
 
         private void writeInt(int v) {
-            INT_VH_BE.set(buf, 0, v);
+            putInt(buf, 0, v);
             output.write(buf, 0, 4);
         }
 
         private void writeDouble(double v) {
             v = toCanonicalDouble(v);
-            DOUBLE_VH_BE.set(buf, 0, v);
+            putDouble(buf, 0, v);
             output.write(buf, 0, 8);
         }
 
@@ -218,7 +220,7 @@ public final class EWKBUtils {
          * @return next 32-bit integer
          */
         int readInt() {
-            int result = bigEndian ? (int) INT_VH_BE.get(ewkb, offset) : (int) INT_VH_LE.get(ewkb, offset);
+            int result = bigEndian ? getInt(ewkb, offset) : getIntLE(ewkb, offset);
             offset += 4;
             return result;
         }
@@ -229,7 +231,7 @@ public final class EWKBUtils {
          * @return next 64-bit floating point
          */
         double readCoordinate() {
-            double v = bigEndian ? (double) DOUBLE_VH_BE.get(ewkb, offset) : (double) DOUBLE_VH_LE.get(ewkb, offset);
+            double v = bigEndian ? getDouble(ewkb, offset) : getDoubleLE(ewkb, offset);
             offset += 8;
             return toCanonicalDouble(v);
         }
@@ -531,31 +533,31 @@ public final class EWKBUtils {
         if (minX == maxX && minY == maxY) {
             result = new byte[21];
             result[4] = POINT;
-            DOUBLE_VH_BE.set(result, 5, minX);
-            DOUBLE_VH_BE.set(result, 13, minY);
+            putDouble(result, 5, minX);
+            putDouble(result, 13, minY);
         } else if (minX == maxX || minY == maxY) {
             result = new byte[41];
             result[4] = LINE_STRING;
             result[8] = 2;
-            DOUBLE_VH_BE.set(result, 9, minX);
-            DOUBLE_VH_BE.set(result, 17, minY);
-            DOUBLE_VH_BE.set(result, 25, maxX);
-            DOUBLE_VH_BE.set(result, 33, maxY);
+            putDouble(result, 9, minX);
+            putDouble(result, 17, minY);
+            putDouble(result, 25, maxX);
+            putDouble(result, 33, maxY);
         } else {
             result = new byte[93];
             result[4] = POLYGON;
             result[8] = 1;
             result[12] = 5;
-            DOUBLE_VH_BE.set(result, 13, minX);
-            DOUBLE_VH_BE.set(result, 21, minY);
-            DOUBLE_VH_BE.set(result, 29, minX);
-            DOUBLE_VH_BE.set(result, 37, maxY);
-            DOUBLE_VH_BE.set(result, 45, maxX);
-            DOUBLE_VH_BE.set(result, 53, maxY);
-            DOUBLE_VH_BE.set(result, 61, maxX);
-            DOUBLE_VH_BE.set(result, 69, minY);
-            DOUBLE_VH_BE.set(result, 77, minX);
-            DOUBLE_VH_BE.set(result, 85, minY);
+            putDouble(result, 13, minX);
+            putDouble(result, 21, minY);
+            putDouble(result, 29, minX);
+            putDouble(result, 37, maxY);
+            putDouble(result, 45, maxX);
+            putDouble(result, 53, maxY);
+            putDouble(result, 61, maxX);
+            putDouble(result, 69, minY);
+            putDouble(result, 77, minX);
+            putDouble(result, 85, minY);
         }
         return result;
     }

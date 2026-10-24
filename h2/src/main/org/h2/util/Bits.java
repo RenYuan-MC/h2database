@@ -5,58 +5,143 @@
  */
 package org.h2.util;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
 import java.util.UUID;
 
 /**
- * Manipulations with bytes and arrays. Specialized implementation for Java 9
- * and later versions.
+ * Manipulations with bytes and arrays.
  */
 public final class Bits {
 
     /**
-     * VarHandle giving access to elements of a byte[] array viewed as if it
-     * were a int[] array on big-endian system.
+     * Reads a big-endian 32-bit integer.
+     *
+     * @param b the byte array
+     * @param off the byte offset
+     * @return the value
      */
-    public static final VarHandle INT_VH_BE = MethodHandles.byteArrayViewVarHandle(int[].class, //
-            ByteOrder.BIG_ENDIAN);
+    public static int getInt(byte[] b, int off) {
+        return (b[off] & 0xff) << 24 | (b[off + 1] & 0xff) << 16
+                | (b[off + 2] & 0xff) << 8 | (b[off + 3] & 0xff);
+    }
 
     /**
-     * VarHandle giving access to elements of a byte[] array viewed as if it
-     * were a int[] array on little-endian system.
+     * Writes a big-endian 32-bit integer.
+     *
+     * @param b the byte array
+     * @param off the byte offset
+     * @param v the value
      */
-    public static final VarHandle INT_VH_LE = MethodHandles.byteArrayViewVarHandle(int[].class,
-            ByteOrder.LITTLE_ENDIAN);
+    public static void putInt(byte[] b, int off, int v) {
+        b[off] = (byte) (v >>> 24);
+        b[off + 1] = (byte) (v >>> 16);
+        b[off + 2] = (byte) (v >>> 8);
+        b[off + 3] = (byte) v;
+    }
 
     /**
-     * VarHandle giving access to elements of a byte[] array viewed as if it
-     * were a long[] array on big-endian system.
+     * Reads a little-endian 32-bit integer.
+     *
+     * @param b the byte array
+     * @param off the byte offset
+     * @return the value
      */
-    public static final VarHandle LONG_VH_BE = MethodHandles.byteArrayViewVarHandle(long[].class, //
-            ByteOrder.BIG_ENDIAN);
+    public static int getIntLE(byte[] b, int off) {
+        return (b[off] & 0xff) | (b[off + 1] & 0xff) << 8
+                | (b[off + 2] & 0xff) << 16 | (b[off + 3] & 0xff) << 24;
+    }
 
     /**
-     * VarHandle giving access to elements of a byte[] array viewed as if it
-     * were a long[] array on little-endian system.
+     * Writes a little-endian 32-bit integer.
+     *
+     * @param b the byte array
+     * @param off the byte offset
+     * @param v the value
      */
-    public static final VarHandle LONG_VH_LE = MethodHandles.byteArrayViewVarHandle(long[].class,
-            ByteOrder.LITTLE_ENDIAN);
+    public static void putIntLE(byte[] b, int off, int v) {
+        b[off] = (byte) v;
+        b[off + 1] = (byte) (v >>> 8);
+        b[off + 2] = (byte) (v >>> 16);
+        b[off + 3] = (byte) (v >>> 24);
+    }
 
     /**
-     * VarHandle giving access to elements of a byte[] array viewed as if it
-     * were a double[] array on big-endian system.
+     * Reads a big-endian 64-bit integer.
+     *
+     * @param b the byte array
+     * @param off the byte offset
+     * @return the value
      */
-    public static final VarHandle DOUBLE_VH_BE = MethodHandles.byteArrayViewVarHandle(double[].class,
-            ByteOrder.BIG_ENDIAN);
+    public static long getLong(byte[] b, int off) {
+        return (long) getInt(b, off) << 32 | getInt(b, off + 4) & 0xffffffffL;
+    }
 
     /**
-     * VarHandle giving access to elements of a byte[] array viewed as if it
-     * were a double[] array on little-endian system.
+     * Writes a big-endian 64-bit integer.
+     *
+     * @param b the byte array
+     * @param off the byte offset
+     * @param v the value
      */
-    public static final VarHandle DOUBLE_VH_LE = MethodHandles.byteArrayViewVarHandle(double[].class,
-            ByteOrder.LITTLE_ENDIAN);
+    public static void putLong(byte[] b, int off, long v) {
+        putInt(b, off, (int) (v >>> 32));
+        putInt(b, off + 4, (int) v);
+    }
+
+    /**
+     * Reads a little-endian 64-bit integer.
+     *
+     * @param b the byte array
+     * @param off the byte offset
+     * @return the value
+     */
+    public static long getLongLE(byte[] b, int off) {
+        return getIntLE(b, off) & 0xffffffffL | (long) getIntLE(b, off + 4) << 32;
+    }
+
+    /**
+     * Writes a little-endian 64-bit integer.
+     *
+     * @param b the byte array
+     * @param off the byte offset
+     * @param v the value
+     */
+    public static void putLongLE(byte[] b, int off, long v) {
+        putIntLE(b, off, (int) v);
+        putIntLE(b, off + 4, (int) (v >>> 32));
+    }
+
+    /**
+     * Reads a big-endian 64-bit floating point value.
+     *
+     * @param b the byte array
+     * @param off the byte offset
+     * @return the value
+     */
+    public static double getDouble(byte[] b, int off) {
+        return Double.longBitsToDouble(getLong(b, off));
+    }
+
+    /**
+     * Writes a big-endian 64-bit floating point value.
+     *
+     * @param b the byte array
+     * @param off the byte offset
+     * @param v the value
+     */
+    public static void putDouble(byte[] b, int off, double v) {
+        putLong(b, off, Double.doubleToRawLongBits(v));
+    }
+
+    /**
+     * Reads a little-endian 64-bit floating point value.
+     *
+     * @param b the byte array
+     * @param off the byte offset
+     * @return the value
+     */
+    public static double getDoubleLE(byte[] b, int off) {
+        return Double.longBitsToDouble(getLongLE(b, off));
+    }
 
     /**
      * Converts UUID value to byte array in big-endian order.
@@ -69,8 +154,8 @@ public final class Bits {
      */
     public static byte[] uuidToBytes(long msb, long lsb) {
         byte[] buff = new byte[16];
-        LONG_VH_BE.set(buff, 0, msb);
-        LONG_VH_BE.set(buff, 8, lsb);
+        putLong(buff, 0, msb);
+        putLong(buff, 8, lsb);
         return buff;
     }
 

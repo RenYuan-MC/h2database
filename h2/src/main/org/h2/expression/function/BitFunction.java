@@ -5,7 +5,7 @@
  */
 package org.h2.expression.function;
 
-import static org.h2.util.Bits.LONG_VH_BE;
+import static org.h2.util.Bits.getLong;
 
 import java.util.Arrays;
 
@@ -188,7 +188,7 @@ public final class BitFunction extends Function1_2 {
             c = 0L;
             int i = 0;
             for (int bound = l & 0xfffffff8; i < bound; i += 8) {
-                c += Long.bitCount((long) LONG_VH_BE.get(bytes, i));
+                c += Long.bitCount(getLong(bytes, i));
             }
             for (; i < l; i++) {
                 c += Integer.bitCount(bytes[i] & 0xff);

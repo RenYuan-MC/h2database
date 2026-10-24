@@ -1,0 +1,35 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TeaVM H2 WasmGC regression</title>
+<style>body{font:16px/1.6 monospace;max-width:1100px;margin:2em auto}pre{white-space:pre-wrap}</style>
+<h1>TeaVM H2 WasmGC regression</h1>
+<pre id="result"></pre>
+<script src="../wasm-gc-runtime.js"></script>
+<script>
+(async () => {
+  const log = text => document.querySelector('#result').textContent += text + '\n';
+  log(navigator.userAgent);
+  for (const [name, expected] of [
+    ['catch-before', false], ['catch-fixed', true], ['catch-backend-fixed', true],
+    ['weak-before-simple', false], ['weak-fixed', true], ['weak-backend-fixed', true]
+  ]) {
+    const bytes = await (await fetch('./' + name + '/probe.wasm')).arrayBuffer();
+    let valid = true;
+    try { new WebAssembly.Module(bytes); }
+    catch (e) { valid = false; log(name + ': ' + e.message); }
+    log(name + ': ' + (valid === expected ? 'PASS' : 'FAIL') + ' (valid=' + valid + ')');
+  }
+  for (const [name, cases] of [
+    ['catch-fixed', [[0, 2], [1, 0]]],
+    ['catch-backend-fixed', [[0, 2], [1, 0]]],
+    ['weak-fixed', [[42, 42], [123, 123]]]
+  ]) {
+    const module = await TeaVM.wasmGC.load('./' + name + '/probe.wasm', {});
+    for (const [input, expected] of cases) {
+      const value = module.exports.run(input);
+      log(name + '.run(' + input + ') = ' + value + ': ' + (value === expected ? 'PASS' : 'FAIL'));
+    }
+  }
+  log('DONE');
+})().catch(e => { document.querySelector('#result').textContent += '\nFAIL: ' + e.stack; });
+</script>

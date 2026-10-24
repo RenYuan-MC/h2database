@@ -1,0 +1,13 @@
+allprojects {
+    afterEvaluate {
+        tasks.named('generateWasmGC').configure { task ->
+            def previousClasspath = new ArrayList(task.classpath.files)
+            task.classpath.setFrom(task.project.files('diagnosis/patch-classes'), previousClasspath)
+            def entry = project.findProperty('diagnosisEntry') ?: 'org.h2.wasm.H2Probe'
+            def output = project.findProperty('diagnosisOutput') ?: 'gradle-h2-fixed'
+            task.mainClass.set(entry.toString())
+            task.outputDir.set(task.project.file('diagnosis/' + output))
+            task.obfuscated.set(false)
+        }
+    }
+}

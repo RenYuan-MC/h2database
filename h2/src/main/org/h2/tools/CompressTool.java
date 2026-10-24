@@ -5,7 +5,8 @@
  */
 package org.h2.tools;
 
-import static org.h2.util.Bits.INT_VH_BE;
+import static org.h2.util.Bits.getInt;
+import static org.h2.util.Bits.putInt;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -163,7 +164,7 @@ public class CompressTool {
                     ((buff[pos++] & 0xff) << 8) +
                     (buff[pos] & 0xff);
         }
-        return (int) INT_VH_BE.get(buff, pos);
+        return getInt(buff, pos);
     }
 
     /**
@@ -178,7 +179,7 @@ public class CompressTool {
     public static int writeVariableInt(byte[] buff, int pos, int x) {
         if (x < 0) {
             buff[pos++] = (byte) 0xf0;
-            INT_VH_BE.set(buff, pos, x);
+            putInt(buff, pos, x);
             return 5;
         } else if (x < 0x80) {
             buff[pos] = (byte) x;
@@ -193,11 +194,11 @@ public class CompressTool {
             buff[pos] = (byte) x;
             return 3;
         } else if (x < 0x1000_0000) {
-            INT_VH_BE.set(buff, pos, x | 0xe000_0000);
+            putInt(buff, pos, x | 0xe000_0000);
             return 4;
         } else {
             buff[pos++] = (byte) 0xf0;
-            INT_VH_BE.set(buff, pos, x);
+            putInt(buff, pos, x);
             return 5;
         }
     }

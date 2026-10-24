@@ -5,7 +5,7 @@
  */
 package org.h2.value;
 
-import static org.h2.util.Bits.LONG_VH_BE;
+import static org.h2.util.Bits.putLong;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -1353,7 +1353,7 @@ public final class Transfer {
             lobMacSalt = MathUtils.secureRandomBytes(LOB_MAC_SALT_LENGTH);
         }
         byte[] data = new byte[8];
-        LONG_VH_BE.set(data, 0, lobId);
+        putLong(data, 0, lobId);
         return SHA256.getHashWithSalt(data, lobMacSalt);
     }
 

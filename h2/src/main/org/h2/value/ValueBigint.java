@@ -5,7 +5,7 @@
  */
 package org.h2.value;
 
-import static org.h2.util.Bits.LONG_VH_BE;
+import static org.h2.util.Bits.putLong;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -173,7 +173,7 @@ public final class ValueBigint extends Value {
     @Override
     public byte[] getBytes() {
         byte[] b = new byte[8];
-        LONG_VH_BE.set(b, 0, getLong());
+        putLong(b, 0, getLong());
         return b;
     }
 

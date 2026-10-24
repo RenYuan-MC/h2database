@@ -1,0 +1,38 @@
+diff --git a/core/src/main/java/org/teavm/backend/wasm/generators/gc/WeakReferenceGenerator.java b/core/src/main/java/org/teavm/backend/wasm/generators/gc/WeakReferenceGenerator.java
+--- a/core/src/main/java/org/teavm/backend/wasm/generators/gc/WeakReferenceGenerator.java
++++ b/core/src/main/java/org/teavm/backend/wasm/generators/gc/WeakReferenceGenerator.java
+@@ -17,7 +17,6 @@ package org.teavm.backend.wasm.generators.gc;
+ 
+ import java.lang.ref.ReferenceQueue;
+ import java.lang.ref.WeakReference;
+-import org.teavm.backend.wasm.generate.gc.classes.WasmGCClassInfoProvider;
+ import org.teavm.backend.wasm.model.WasmFunction;
+ import org.teavm.backend.wasm.model.WasmLocal;
+ import org.teavm.backend.wasm.model.WasmType;
+@@ -76,7 +75,7 @@ public class WeakReferenceGenerator implements WasmGCCustomGenerator {
+             thisRef = new WasmCast(thisRef, weakRefStruct.getReference());
+         }
+         function.getBody().add(new WasmStructSet(weakRefStruct, thisRef,
+-                WasmGCClassInfoProvider.WEAK_REFERENCE_OFFSET, weakRef));
++                weakRefStruct.getFields().size() - 1, weakRef));
+     }
+ 
+     private void generateDeref(WasmGCCustomGeneratorContext context, WasmFunction function) {
+@@ -92,7 +91,7 @@ public class WeakReferenceGenerator implements WasmGCCustomGenerator {
+         if (context.isCompactMode()) {
+             thisRef = new WasmCast(thisRef, weakRefStruct.getReference());
+         }
+-        var weakRef = new WasmStructGet(weakRefStruct, thisRef, WasmGCClassInfoProvider.WEAK_REFERENCE_OFFSET);
++        var weakRef = new WasmStructGet(weakRefStruct, thisRef, weakRefStruct.getFields().size() - 1);
+         var br = new WasmNullBranch(WasmNullCondition.NOT_NULL, weakRef, block);
+         block.getBody().add(br);
+         block.getBody().add(new WasmReturn(new WasmNullConstant(objectType)));
+@@ -111,7 +110,7 @@ public class WeakReferenceGenerator implements WasmGCCustomGenerator {
+             thisRef = new WasmCast(thisRef, weakRefStruct.getReference());
+         }
+         function.getBody().add(new WasmStructSet(weakRefStruct, thisRef,
+-                WasmGCClassInfoProvider.WEAK_REFERENCE_OFFSET, new WasmNullConstant(WasmType.Reference.EXTERN)));
++                weakRefStruct.getFields().size() - 1, new WasmNullConstant(WasmType.Reference.EXTERN)));
+     }
+ 
+     private WasmFunction getCreateWeakReferenceFunction(WasmGCCustomGeneratorContext context) {

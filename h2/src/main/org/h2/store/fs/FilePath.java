@@ -12,7 +12,8 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import org.h2.store.fs.disk.FilePathDisk;
+import org.h2.store.fs.mem.FilePathMem;
+import org.h2.store.fs.wasm.FilePathWasm;
 import org.h2.util.MathUtils;
 
 /**
@@ -40,29 +41,14 @@ public abstract class FilePath {
     public String name;
 
     static {
+        // RenYuan wasm branch: only the in-memory and wasm providers are available,
+        // because java.io.File / java.nio.file are not part of this runtime.
         ConcurrentHashMap<String, FilePath> map = new ConcurrentHashMap<>();
-        FilePath p = new FilePathDisk();
-        map.put(p.getScheme(), p);
-        map.put("nio", p);
-        defaultProvider = p;
-        for (String c : new String[] {
-                "org.h2.store.fs.mem.FilePathMem",
-                "org.h2.store.fs.mem.FilePathMemLZF",
-                "org.h2.store.fs.niomem.FilePathNioMem",
-                "org.h2.store.fs.niomem.FilePathNioMemLZF",
-                "org.h2.store.fs.split.FilePathSplit",
-                "org.h2.store.fs.niomapped.FilePathNioMapped",
-                "org.h2.store.fs.async.FilePathAsync",
-                "org.h2.store.fs.zip.FilePathZip",
-                "org.h2.store.fs.retry.FilePathRetryOnInterrupt"
-        }) {
-            try {
-                p = (FilePath) Class.forName(c).getDeclaredConstructor().newInstance();
-                map.put(p.getScheme(), p);
-            } catch (Exception e) {
-                // ignore - the files may be excluded in purpose
-            }
-        }
+        FilePath mem = new FilePathMem();
+        map.put(mem.getScheme(), mem);
+        defaultProvider = mem;
+        FilePath wasm = new FilePathWasm();
+        map.put(wasm.getScheme(), wasm);
         providers = map;
     }
 

@@ -16,12 +16,10 @@ import java.io.StringWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.SecureClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,15 +32,6 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import javax.tools.FileObject;
-import javax.tools.ForwardingJavaFileManager;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileManager;
-import javax.tools.JavaFileObject;
-import javax.tools.JavaFileObject.Kind;
-import javax.tools.SimpleJavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
@@ -55,9 +44,9 @@ import org.h2.message.DbException;
 public class SourceCompiler {
 
     /**
-     * The "com.sun.tools.javac.Main" (if available).
+     * The Java compiler, not available in this build.
      */
-    static final JavaCompiler JAVA_COMPILER;
+    static final Object JAVA_COMPILER = null;
 
     private static final Class<?> JAVAC_SUN;
 
@@ -85,14 +74,6 @@ public class SourceCompiler {
     boolean useJavaSystemCompiler = SysProperties.JAVA_SYSTEM_COMPILER;
 
     static {
-        JavaCompiler c;
-        try {
-            c = ToolProvider.getSystemJavaCompiler();
-        } catch (Exception e) {
-            // ignore
-            c = null;
-        }
-        JAVA_COMPILER = c;
         Class<?> clazz;
         try {
             clazz = Class.forName("com.sun.tools.javac.Main");
@@ -344,25 +325,7 @@ public class SourceCompiler {
      * @return the class
      */
     Class<?> javaxToolsJavac(String packageName, String className, String source) {
-        String fullClassName = packageName + "." + className;
-        StringWriter writer = new StringWriter();
-        try (JavaFileManager fileManager = new
-                ClassFileManager(JAVA_COMPILER
-                    .getStandardFileManager(null, null, null))) {
-            ArrayList<JavaFileObject> compilationUnits = new ArrayList<>();
-            compilationUnits.add(new StringJavaFileObject(fullClassName, source));
-            // cannot concurrently compile
-            final boolean ok;
-            synchronized (JAVA_COMPILER) {
-                ok = JAVA_COMPILER.getTask(writer, fileManager, null, null,
-                        null, compilationUnits).call();
-            }
-            String output = writer.toString();
-            handleSyntaxError(output, (ok? 0: 1));
-            return fileManager.getClassLoader(null).loadClass(fullClassName);
-        } catch (ClassNotFoundException | IOException e) {
-            throw DbException.convert(e);
-        }
+        throw DbException.getUnsupportedException("javax.tools");
     }
 
     private static void javacProcess(Path javaFile) {
@@ -523,88 +486,6 @@ public class SourceCompiler {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        }
-    }
-
-    /**
-     * An in-memory java source file object.
-     */
-    static class StringJavaFileObject extends SimpleJavaFileObject {
-
-        private final String sourceCode;
-
-        public StringJavaFileObject(String className, String sourceCode) {
-            super(URI.create("string:///" + className.replace('.', '/')
-                + Kind.SOURCE.extension), Kind.SOURCE);
-            this.sourceCode = sourceCode;
-        }
-
-        @Override
-        public CharSequence getCharContent(boolean ignoreEncodingErrors) {
-            return sourceCode;
-        }
-
-    }
-
-    /**
-     * An in-memory java class object.
-     */
-    static class JavaClassObject extends SimpleJavaFileObject {
-
-        private final ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        public JavaClassObject(String name, Kind kind) {
-            super(URI.create("string:///" + name.replace('.', '/')
-                + kind.extension), kind);
-        }
-
-        public byte[] getBytes() {
-            return out.toByteArray();
-        }
-
-        @Override
-        public OutputStream openOutputStream() throws IOException {
-            return out;
-        }
-    }
-
-    /**
-     * An in-memory class file manager.
-     */
-    static class ClassFileManager extends
-            ForwardingJavaFileManager<StandardJavaFileManager> {
-
-        /**
-         * We use map because there can be nested, anonymous etc classes.
-         */
-        Map<String, JavaClassObject> classObjectsByName = new HashMap<>();
-
-        private SecureClassLoader classLoader = new SecureClassLoader() {
-
-            @Override
-            protected Class<?> findClass(String name)
-                    throws ClassNotFoundException {
-                byte[] bytes = classObjectsByName.get(name).getBytes();
-                return super.defineClass(name, bytes, 0,
-                        bytes.length);
-            }
-        };
-
-        public ClassFileManager(StandardJavaFileManager standardManager) {
-            super(standardManager);
-        }
-
-        @Override
-        public ClassLoader getClassLoader(Location location) {
-            return this.classLoader;
-        }
-
-        @Override
-        public JavaFileObject getJavaFileForOutput(Location location,
-                String className, Kind kind, FileObject sibling) throws IOException {
-            JavaClassObject classObject = new JavaClassObject(className, kind);
-            classObjectsByName.put(className, classObject);
-            return classObject;
         }
     }
 

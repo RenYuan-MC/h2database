@@ -5,8 +5,8 @@
  */
 package org.h2.expression.function;
 
-import static org.h2.util.Bits.INT_VH_BE;
-import static org.h2.util.Bits.LONG_VH_BE;
+import static org.h2.util.Bits.getLong;
+import static org.h2.util.Bits.putInt;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -122,10 +122,10 @@ public final class HashFunction extends FunctionN {
         }
         if (seed != 0L) {
             byte[] b = new byte[4];
-            INT_VH_BE.set(b, 0, (int) seed);
+            putInt(b, 0, (int) seed);
             md.update(b);
         }
-        long hc = (long) LONG_VH_BE.get(md.digest(), 0);
+        long hc = getLong(md.digest(), 0);
         // Strip sign and use modulo operation to get value from 0 to bucket
         // inclusive
         return ValueBigint.get((hc & Long.MAX_VALUE) % (bucket + 1));

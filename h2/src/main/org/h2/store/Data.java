@@ -8,7 +8,8 @@
  */
 package org.h2.store;
 
-import static org.h2.util.Bits.INT_VH_BE;
+import static org.h2.util.Bits.getInt;
+import static org.h2.util.Bits.putInt;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -48,7 +49,7 @@ public class Data {
      * @param x the value
      */
     public void writeInt(int x) {
-        INT_VH_BE.set(data, pos, x);
+        putInt(data, pos, x);
         pos += 4;
     }
 
@@ -59,7 +60,7 @@ public class Data {
      * @return the value
      */
     public int readInt() {
-        int x = (int) INT_VH_BE.get(data, pos);
+        int x = getInt(data, pos);
         pos += 4;
         return x;
     }

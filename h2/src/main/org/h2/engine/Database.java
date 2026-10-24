@@ -66,7 +66,6 @@ import org.h2.table.TableSynonym;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
-import org.h2.tools.Server;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
@@ -193,7 +192,6 @@ public final class Database implements DataHandler, CastDataProvider {
     private final boolean closeAtVmShutdown;
     private final boolean autoServerMode;
     private final int autoServerPort;
-    private Server server;
     private HashMap<TableLinkConnection, TableLinkConnection> linkConnections;
     private final TempFileDeleter tempFileDeleter = TempFileDeleter.getInstance();
     private int compactMode;
@@ -668,33 +666,12 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     private void startServer(String key) {
-        try {
-            server = Server.createTcpServer(
-                    "-tcpPort", Integer.toString(autoServerPort),
-                    "-tcpAllowOthers",
-                    "-tcpDaemon",
-                    "-key", key, databaseName);
-            server.start();
-        } catch (SQLException e) {
-            throw DbException.convert(e);
-        }
-        String localAddress = NetUtils.getLocalAddress();
-        String address = localAddress + ":" + server.getPort();
-        lock.setProperty("server", address);
-        String hostName = NetUtils.getHostName(localAddress);
-        lock.setProperty("hostName", hostName);
-        lock.save();
+        // RenYuan wasm branch: AUTO_SERVER mode is not available in the browser build.
+        throw DbException.getUnsupportedException("AUTO_SERVER");
     }
 
     private void stopServer() {
-        if (server != null) {
-            Server s = server;
-            // avoid calling stop recursively
-            // because stopping the server will
-            // try to close the database as well
-            server = null;
-            s.stop();
-        }
+        // RenYuan wasm branch: AUTO_SERVER mode is not available in the browser build.
     }
 
     private void recompileInvalidViews() {
@@ -1555,6 +1532,11 @@ public final class Database implements DataHandler, CastDataProvider {
 
     private void deleteOldTempFiles() {
         String path = FileUtils.getParent(databaseName);
+        if (path == null) {
+            // RenYuan wasm branch: virtual file names (e.g. "wasm:db") have no parent directory,
+            // and there are never temporary files to clean up in that case.
+            return;
+        }
         for (String name : FileUtils.newDirectoryStream(path)) {
             if (name.endsWith(Constants.SUFFIX_TEMP_FILE) &&
                     name.startsWith(databaseName)) {

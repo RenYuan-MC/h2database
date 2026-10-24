@@ -5,7 +5,7 @@
  */
 package org.h2.security;
 
-import static org.h2.util.Bits.LONG_VH_BE;
+import static org.h2.util.Bits.putLong;
 
 import org.h2.engine.Constants;
 import org.h2.store.DataHandler;
@@ -100,7 +100,7 @@ public class SecureFileStore extends FileStore {
         byte[] iv = bufferForInitVector;
         while (len > 0) {
             for (int i = 0; i < Constants.FILE_BLOCK_SIZE; i += 8) {
-                LONG_VH_BE.set(iv, i, (p + i) >>> 3);
+                putLong(iv, i, (p + i) >>> 3);
             }
             cipherForInitVector.encrypt(iv, 0, Constants.FILE_BLOCK_SIZE);
             for (int i = 0; i < Constants.FILE_BLOCK_SIZE; i++) {

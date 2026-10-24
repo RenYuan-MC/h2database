@@ -5,9 +5,6 @@
  */
 package org.h2.value;
 
-import static org.h2.util.Bits.INT_VH_BE;
-import static org.h2.util.Bits.LONG_VH_BE;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -29,6 +26,7 @@ import org.h2.engine.Mode.CharPadding;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
+import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.HasSQL;
 import org.h2.util.IntervalUtils;
@@ -1624,7 +1622,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case VARBINARY: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 4) {
-                return ValueInteger.get((int) INT_VH_BE.get(bytes, 0));
+                return ValueInteger.get(Bits.getInt(bytes, 0));
             }
         }
         //$FALL-THROUGH$
@@ -1679,7 +1677,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case VARBINARY: {
             byte[] bytes = getBytesNoCopy();
             if (bytes.length == 8) {
-                return ValueBigint.get((long) LONG_VH_BE.get(bytes, 0));
+                return ValueBigint.get(Bits.getLong(bytes, 0));
             }
         }
         //$FALL-THROUGH$

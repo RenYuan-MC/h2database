@@ -1,0 +1,13 @@
+diff --git a/core/src/main/java/org/teavm/backend/wasm/generate/gc/methods/WasmGCGenerationVisitor.java b/core/src/main/java/org/teavm/backend/wasm/generate/gc/methods/WasmGCGenerationVisitor.java
+--- a/core/src/main/java/org/teavm/backend/wasm/generate/gc/methods/WasmGCGenerationVisitor.java
++++ b/core/src/main/java/org/teavm/backend/wasm/generate/gc/methods/WasmGCGenerationVisitor.java
+@@ -658,6 +658,9 @@
+     @Override
+     protected void checkExceptionType(TryCatchStatement tryCatch, WasmLocal exceptionVar, List<WasmExpression> target,
+             WasmBlock targetBlock) {
++        if (context.classes().get(tryCatch.getExceptionType()) == null) {
++            return;
++        }
+         var wasmType = context.classInfoProvider().getClassInfo(tryCatch.getExceptionType()).getType();
+         var wasmSourceType = context.classInfoProvider().getClassInfo("java.lang.Throwable").getType();
+         var br = new WasmCastBranch(WasmCastCondition.SUCCESS, new WasmGetLocal(exceptionVar),

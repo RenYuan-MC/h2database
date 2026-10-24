@@ -5,11 +5,11 @@
  */
 package org.h2.value;
 
-import static org.h2.util.Bits.INT_VH_BE;
 import static org.h2.util.geometry.EWKBUtils.EWKB_SRID;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
+import org.h2.util.Bits;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.geometry.EWKBUtils;
@@ -17,8 +17,6 @@ import org.h2.util.geometry.EWKTUtils;
 import org.h2.util.geometry.EWKTUtils.EWKTTarget;
 import org.h2.util.geometry.GeometryUtils;
 import org.h2.util.geometry.GeometryUtils.EnvelopeTarget;
-import org.h2.util.geometry.JTSUtils;
-import org.locationtech.jts.geom.Geometry;
 
 /**
  * Implementation of the GEOMETRY data type.
@@ -66,8 +64,8 @@ public final class ValueGeometry extends ValueBytesBase {
         }
         this.value = bytes;
         this.envelope = envelope;
-        int t = (int) INT_VH_BE.get(bytes, 1);
-        srid = (t & EWKB_SRID) != 0 ? (int) INT_VH_BE.get(bytes, 5) : 0;
+        int t = Bits.getInt(bytes, 1);
+        srid = (t & EWKB_SRID) != 0 ? Bits.getInt(bytes, 5) : 0;
         typeAndDimensionSystem = (t & 0xffff) % 1_000 + EWKBUtils.type2dimensionSystem(t) * 1_000;
     }
 
@@ -79,12 +77,8 @@ public final class ValueGeometry extends ValueBytesBase {
      * @return the value
      */
     public static ValueGeometry getFromGeometry(Object o) {
-        try {
-            Geometry g = (Geometry) o;
-            return (ValueGeometry) Value.cache(new ValueGeometry(JTSUtils.geometry2ewkb(g), UNKNOWN_ENVELOPE));
-        } catch (RuntimeException ex) {
-            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, String.valueOf(o));
-        }
+        // RenYuan wasm branch: JTS is not available in the browser build.
+        throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, "JTS geometry conversion");
     }
 
     /**
@@ -143,15 +137,9 @@ public final class ValueGeometry extends ValueBytesBase {
      *
      * @return a copy of the geometry object
      */
-    public Geometry getGeometry() {
-        if (geometry == null) {
-            try {
-                geometry = JTSUtils.ewkb2geometry(value, getDimensionSystem());
-            } catch (RuntimeException ex) {
-                throw DbException.convert(ex);
-            }
-        }
-        return ((Geometry) geometry).copy();
+    public Object getGeometry() {
+        // RenYuan wasm branch: JTS is not available in the browser build.
+        throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, "JTS geometry conversion");
     }
 
     /**

@@ -5,8 +5,6 @@
  */
 package org.h2.value;
 
-import static org.h2.util.Bits.LONG_VH_BE;
-
 import java.time.Instant;
 import java.util.UUID;
 
@@ -85,7 +83,7 @@ public final class ValueUuid extends Value {
         if (length != 16) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "UUID requires 16 bytes, got " + length);
         }
-        return get((long) LONG_VH_BE.get(binary, 0), (long) LONG_VH_BE.get(binary, 8));
+        return get(Bits.getLong(binary, 0), Bits.getLong(binary, 8));
     }
 
     /**

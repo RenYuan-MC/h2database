@@ -5,8 +5,9 @@
  */
 package org.h2.security;
 
-import static org.h2.util.Bits.INT_VH_LE;
-import static org.h2.util.Bits.LONG_VH_LE;
+import static org.h2.util.Bits.getLongLE;
+import static org.h2.util.Bits.putIntLE;
+import static org.h2.util.Bits.putLongLE;
 
 import java.security.MessageDigest;
 import java.util.Arrays;
@@ -97,22 +98,22 @@ public final class SHA3 extends MessageDigest {
         byte[] r = new byte[digestLength];
         switch (digestLength) {
         case 64:
-            LONG_VH_LE.set(r, 56, state07);
-            LONG_VH_LE.set(r, 48, state06);
+            putLongLE(r, 56, state07);
+            putLongLE(r, 48, state06);
             //$FALL-THROUGH$
         case 48:
-            LONG_VH_LE.set(r, 40, state05);
-            LONG_VH_LE.set(r, 32, state04);
+            putLongLE(r, 40, state05);
+            putLongLE(r, 32, state04);
             //$FALL-THROUGH$
         case 32:
-            LONG_VH_LE.set(r, 24, state03);
+            putLongLE(r, 24, state03);
             break;
         case 28:
-            INT_VH_LE.set(r, 24, (int) state03);
+            putIntLE(r, 24, (int) state03);
         }
-        LONG_VH_LE.set(r, 16, state02);
-        LONG_VH_LE.set(r, 8, state01);
-        LONG_VH_LE.set(r, 0, state00);
+        putLongLE(r, 16, state02);
+        putLongLE(r, 8, state01);
+        putLongLE(r, 0, state00);
         engineReset();
         return r;
     }
@@ -175,29 +176,29 @@ public final class SHA3 extends MessageDigest {
          */
         switch (digestLength) {
         case 28:
-            state17 ^= (long) LONG_VH_LE.get(data, offset + 136);
+            state17 ^= getLongLE(data, offset + 136);
             //$FALL-THROUGH$
         case 32:
-            state13 ^= (long) LONG_VH_LE.get(data, offset + 104);
-            state14 ^= (long) LONG_VH_LE.get(data, offset + 112);
-            state15 ^= (long) LONG_VH_LE.get(data, offset + 120);
-            state16 ^= (long) LONG_VH_LE.get(data, offset + 128);
+            state13 ^= getLongLE(data, offset + 104);
+            state14 ^= getLongLE(data, offset + 112);
+            state15 ^= getLongLE(data, offset + 120);
+            state16 ^= getLongLE(data, offset + 128);
             //$FALL-THROUGH$
         case 48:
-            state09 ^= (long) LONG_VH_LE.get(data, offset + 72);
-            state10 ^= (long) LONG_VH_LE.get(data, offset + 80);
-            state11 ^= (long) LONG_VH_LE.get(data, offset + 88);
-            state12 ^= (long) LONG_VH_LE.get(data, offset + 96);
+            state09 ^= getLongLE(data, offset + 72);
+            state10 ^= getLongLE(data, offset + 80);
+            state11 ^= getLongLE(data, offset + 88);
+            state12 ^= getLongLE(data, offset + 96);
         }
-        state00 ^= (long) LONG_VH_LE.get(data, offset);
-        state01 ^= (long) LONG_VH_LE.get(data, offset + 8);
-        state02 ^= (long) LONG_VH_LE.get(data, offset + 16);
-        state03 ^= (long) LONG_VH_LE.get(data, offset + 24);
-        state04 ^= (long) LONG_VH_LE.get(data, offset + 32);
-        state05 ^= (long) LONG_VH_LE.get(data, offset + 40);
-        state06 ^= (long) LONG_VH_LE.get(data, offset + 48);
-        state07 ^= (long) LONG_VH_LE.get(data, offset + 56);
-        state08 ^= (long) LONG_VH_LE.get(data, offset + 64);
+        state00 ^= getLongLE(data, offset);
+        state01 ^= getLongLE(data, offset + 8);
+        state02 ^= getLongLE(data, offset + 16);
+        state03 ^= getLongLE(data, offset + 24);
+        state04 ^= getLongLE(data, offset + 32);
+        state05 ^= getLongLE(data, offset + 40);
+        state06 ^= getLongLE(data, offset + 48);
+        state07 ^= getLongLE(data, offset + 56);
+        state08 ^= getLongLE(data, offset + 64);
         for (int i = 0; i < 24; i++) {
             long c0 = state00 ^ state05 ^ state10 ^ state15 ^ state20;
             long c1 = state01 ^ state06 ^ state11 ^ state16 ^ state21;

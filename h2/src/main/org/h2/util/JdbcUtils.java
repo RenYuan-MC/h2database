@@ -5,7 +5,7 @@
  */
 package org.h2.util;
 
-import static org.h2.util.Bits.LONG_VH_BE;
+import static org.h2.util.Bits.getLong;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -449,7 +449,7 @@ public class JdbcUtils {
      */
     public static ValueUuid deserializeUuid(byte[] data) {
         if (data.length == 80 && Arrays.mismatch(data, 0, 64, UUID_PREFIX, 0, 64) < 0) {
-            return ValueUuid.get((long) LONG_VH_BE.get(data, 72), (long) LONG_VH_BE.get(data, 64));
+            return ValueUuid.get(getLong(data, 72), getLong(data, 64));
         }
         throw DbException.get(ErrorCode.DESERIALIZATION_FAILED_1, "Is not a UUID");
     }
